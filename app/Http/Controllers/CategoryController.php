@@ -19,7 +19,7 @@ class CategoryController extends Controller
         $this->repository = $repository;
     }
     public function index(){
-        return new CategoryCollection($this->repository->paginate(6));
+        return new CategoryCollection($this->repository->getCategories());
     }
 
     public function show($id)
@@ -41,7 +41,7 @@ class CategoryController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|max:255',
         ]);
-        $category = $this->repository->create($request->all());
+        $category = $this->repository->saveCategory($request->all());
 
         return (new CategoryResource($category))
             ->response()
@@ -54,7 +54,7 @@ class CategoryController extends Controller
             'name' => 'required|max:255',
         ]);
 
-        $category = $this->repository->update($request->all(),$id);
+        $category = $this->repository->updateCategory($request->all(),$id);
 
         return (new CategoryResource($category))
             ->response()

@@ -22,7 +22,8 @@ class ProductController extends Controller
         $this->repository = $repository;
     }
 
-    public function index(){
+    public function index()
+    {
 
         $category = $this->request->get("category");
         $price = $this->request->get("price");
