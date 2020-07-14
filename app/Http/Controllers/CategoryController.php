@@ -6,17 +6,20 @@ namespace App\Http\Controllers;
 use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\Category as CategoryResource;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
     private $request;
     private $repository;
+    private $service;
 
-    public function __construct(Request $request, CategoryRepositoryInterface $repository)
+    public function __construct(Request $request, CategoryRepositoryInterface $repository,CategoryService $service)
     {
         $this->request = $request;
         $this->repository = $repository;
+        $this->service = $service;
     }
     public function index(){
         return new CategoryCollection($this->repository->getCategories());
@@ -38,10 +41,8 @@ class CategoryController extends Controller
     }
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|max:255',
-        ]);
-        $category = $this->repository->saveCategory($request->all());
+
+        $category = $this->service->saveCategory($request->all());
 
         return (new CategoryResource($category))
             ->response()
@@ -50,12 +51,7 @@ class CategoryController extends Controller
 
     public function update($id,Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|max:255',
-        ]);
-
-        $category = $this->repository->updateCategory($request->all(),$id);
-
+        $category = $this->service->updateCategory($id,$request->all());
         return (new CategoryResource($category))
             ->response()
             ->setStatusCode(201);

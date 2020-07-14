@@ -6,6 +6,7 @@ use App\Http\Resources\ProductCollection;
 use App\Http\Resources\Product as ProductResource;
 use App\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -16,10 +17,12 @@ class ProductController extends Controller
 {
     private $request;
     private $repository;
-    public function __construct(Request $request, ProductRepositoryInterface $repository)
+    private $service;
+    public function __construct(Request $request, ProductRepositoryInterface $repository,ProductService $service)
     {
         $this->request = $request;
         $this->repository = $repository;
+        $this->service = $service;
     }
 
     public function index()
@@ -41,49 +44,18 @@ class ProductController extends Controller
         return new ProductResource($this->repository->find($id));
     }
 
-    public function store(Request $request)
+    public function store()
     {
-        $validatedData = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'price' => 'required',
-            'image' => 'required',
-            'categories' => 'required',
-        ]);
-        $data = $request->all();
-        $image = $request->file('image');
-        $filename = uniqid().".".$image->getClientOriginalExtension();
-        Storage::disk('public')->put($filename, File::get($image));
-        $data["image"] = $filename;
 
-        $product = $this->repository->saveProduct($data);
-
+        $product = $this->service->saveProduct($this->request->all());
         return (new ProductResource($product))
             ->response()
             ->setStatusCode(201);
     }
 
-    public function update($id,Request $request)
+    public function update($id)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required',
-            'price' => 'required',
-            'image' => 'required',
-            'categories' => 'required',
-        ]);
-
-        $data = $request->all();
-        $image = $request->file('image');
-        if($image){
-            $filename = uniqid().".".$image->getClientOriginalExtension();
-            Storage::disk('public')->put($filename, File::get($image));
-            $data["image"] = $filename;
-        }else{
-            unset($data["image"]);
-        }
-        $product = $this->repository->updateProduct($id,$data);
-
+        $product = $this->service->updateProduct($id,$this->request->all());
         return (new ProductResource($product))
             ->response()
             ->setStatusCode(201);

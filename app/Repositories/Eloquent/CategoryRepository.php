@@ -32,7 +32,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         return Category::create($data);
     }
 
-    public function updateCategory($data,$id){
+    public function updateCategory($id,$data){
         $category = Category::findOrFail($id);
         $category->update($data);
         return $category;
