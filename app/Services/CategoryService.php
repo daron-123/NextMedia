@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class CategoryService
 {
@@ -30,8 +31,12 @@ class CategoryService
 
     public function validate($data)
     {
-        Validator::make($data, [
+        $validator = Validator::make($data, [
             'name' => 'required|max:255',
-        ])->validate();
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 }

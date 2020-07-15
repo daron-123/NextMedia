@@ -7,6 +7,7 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
@@ -21,7 +22,7 @@ class ProductService
     {
         $this->validate($data);
         $image = $data["image"];
-        $filename = uniqid().".".$image->getClientOriginalExtension();
+        $filename = uniqid().".".pathinfo($image->getBasename(), PATHINFO_EXTENSION);
         Storage::disk('public')->put($filename, File::get($image));
         $data["image"] = $filename;
 
@@ -33,8 +34,9 @@ class ProductService
     {
         $this->validate($data);
         $image = $data["image"];
+
         if($image){
-            $filename = uniqid().".".$image->getClientOriginalExtension();
+            $filename = uniqid().".".pathinfo($image->getBasename(), PATHINFO_EXTENSION);
             Storage::disk('public')->put($filename, File::get($image));
             $data["image"] = $filename;
         }else{
@@ -46,12 +48,17 @@ class ProductService
 
     public function validate($data)
     {
-        Validator::make($data, [
+        $validator = Validator::make($data, [
             'name' => 'required|max:255',
             'description' => 'required',
             'price' => 'required',
-            'image' => 'required',
+            'image' => 'required|image',
             'categories' => 'required',
-        ])->validate();
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
     }
 }
